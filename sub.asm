@@ -3,13 +3,42 @@
                 global          _start
 _start:
 
-                sub             rsp, 2 * 128 * 8
-                lea             rdi, [rsp + 128 * 8]
-                mov             rcx, 128
+                sub             rsp, 4 * 128 * 8
+                lea             rdi, [rsp + 2 * 128 * 8]
+                mov             rcx, 256
                 call            read_long
                 mov             rdi, rsp
                 call            read_long
-                lea             rsi, [rsp + 128 * 8]
+                lea             rsi, [rsp + 2 * 128 * 8]
+
+                call            compare_long_long
+
+                cmp             r9, 0
+                je              .loop
+
+                push            rdi
+                push            rsi
+                push            r8
+                push            r9
+                push            rax
+                push            rcx
+                push            r11
+
+                mov             rax, 1
+                mov             rdi, 1
+                mov             rsi, msg
+                mov             rdx, msg_size
+                syscall
+
+                pop             r11
+                pop             rcx
+                pop             rax
+                pop             r9
+                pop             r8
+                pop             rdi
+                pop             rsi
+
+.loop:
                 call            sub_long_long
 
                 call            write_long
@@ -18,6 +47,36 @@ _start:
                 call            write_char
 
                 jmp             exit
+
+compare_long_long:
+                push            rdi
+                push            rsi
+                push            rcx
+
+                clc
+                xor             r9, r9
+                lea             rdi, [rdi + 255 * 8]
+                lea             rsi, [rsi + 255 * 8]
+.loop:
+                mov             r10, [rdi]
+                mov             r11, [rsi]
+                cmp             r11, r10
+                jb              .loop1
+                cmp             r11, r10
+                ja              .loop3
+                lea             rdi, [rdi - 8]
+                lea             rsi, [rsi - 8]
+                dec             rcx
+                jnz             .loop
+                jmp             .loop3
+.loop1:
+                add             r9, 1
+.loop3:
+                pop             rcx
+                pop             rsi
+                pop             rdi
+                ret
+
 
 ; subs two long number
 ;    rdi -- address of summand #1 (long number)
@@ -307,4 +366,7 @@ print_string:
 invalid_char_msg:
                 db              "Invalid character: "
 invalid_char_msg_size: equ             $ - invalid_char_msg
+msg:            db              0x2d
+msg_size:       equ             $ - msg
+
 

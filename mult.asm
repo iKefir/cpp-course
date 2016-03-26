@@ -3,7 +3,7 @@
                 global          _start
 _start:
 
-                sub             rsp, 4 * 128 * 8
+                sub             rsp, 6 * 128 * 8
                 mov             rcx, 256
                 lea             rdi, [rsp + 4 * 128 * 8]
                 call            set_zero
@@ -49,20 +49,17 @@ mul_long_long:
                 dec             r10
                 jnz             .loop
 
-                mov             r14, rsi
+                push            rsi
+
                 mov             r8, r11
                 mov             rdi, r8
-                mov             r12, rcx
                 call            mul_long_short
-                mov             rcx, r12
 
                 mov             rdi, r9
                 mov             rsi, r8
-                ;mov             rcx, 128
                 call            add_long_long
                 mov             rdi, r15
-                ;mov             rcx, 128
-                mov             rsi, r14
+                pop             rsi
                 lea             r9, [r9 + 8]
 
 
@@ -139,6 +136,7 @@ mul_long_short:
                 push            rax
                 push            rdi
                 push            rcx
+                push            rsi
 
                 xor             rsi, rsi
 .loop:
@@ -152,6 +150,7 @@ mul_long_short:
                 dec             rcx
                 jnz             .loop
 
+                pop             rsi
                 pop             rcx
                 pop             rdi
                 pop             rax
